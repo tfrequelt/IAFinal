@@ -10,6 +10,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -36,6 +37,8 @@ AIAFinalCharacter::AIAFinalCharacter()
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
+	CrouchEyeOffset = FVector(0.0f);
+	CrouchSpeed = 12.f;
 }
 
 void AIAFinalCharacter::BeginPlay()
@@ -43,6 +46,15 @@ void AIAFinalCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 }
+
+void AIAFinalCharacter::Tick(float DeltaTime)
+{
+	// Call the base class  
+	Super::Tick(DeltaTime);
+
+	float CrouchInterpTime = FMath::Min(1.f, CrouchSpeed * DeltaTime);
+	CrouchEyeOffset = (1.f - CrouchInterpTime) * CrouchEyeOffset;
+}	
 
 //////////////////////////////////////////////////////////////////////////// Input
 
@@ -60,6 +72,10 @@ void AIAFinalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AIAFinalCharacter::Look);
+
+		// Crouching
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &AIAFinalCharacter::StartCrouching);
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AIAFinalCharacter::StopCrouching);
 	}
 	else
 	{
@@ -92,4 +108,49 @@ void AIAFinalCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AIAFinalCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	if(HalfHeightAdjust == 0.f)
+	{
+		return;
+	}
+	float StartBaseEyeHeight = BaseEyeHeight;
+	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	CrouchEyeOffset.Z +=  StartBaseEyeHeight - BaseEyeHeight + HalfHeightAdjust;
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight), false);
+}
+
+void AIAFinalCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	if(HalfHeightAdjust == 0.f)
+	{
+		return;
+	}
+	float StartBaseEyeHeight = BaseEyeHeight;
+	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	CrouchEyeOffset.Z +=  StartBaseEyeHeight - BaseEyeHeight - HalfHeightAdjust;
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(0.f, 0.f, BaseEyeHeight), false);
+}
+
+void AIAFinalCharacter::CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult)
+{
+	if(FirstPersonCameraComponent)
+	{
+		FirstPersonCameraComponent->GetCameraView(DeltaTime, OutResult);
+		OutResult.Location += CrouchEyeOffset;
+	}
+}
+
+void AIAFinalCharacter::StartCrouching(const FInputActionValue& Value)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("StartCrouching"));
+	Crouch();
+}
+
+void AIAFinalCharacter::StopCrouching(const FInputActionValue& Value)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("StopCrouching"));
+	UnCrouch();
 }

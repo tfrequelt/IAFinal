@@ -36,12 +36,17 @@ class AIAFinalCharacter : public ACharacter
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
+
+	/** Crouch Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* CrouchAction;
 	
 public:
 	AIAFinalCharacter();
 
 protected:
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 public:
 		
@@ -49,12 +54,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
+	FVector CrouchEyeOffset;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
+	float CrouchSpeed;
+
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	/** Called for crouching input */
+	void StartCrouching(const FInputActionValue& Value);
+	void StopCrouching(const FInputActionValue& Value);
+
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
 
 protected:
 	// APawn interface
@@ -68,4 +87,3 @@ public:
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 };
-
