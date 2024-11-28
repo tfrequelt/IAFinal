@@ -39,6 +39,10 @@ AIAFinalCharacter::AIAFinalCharacter()
 
 	CrouchEyeOffset = FVector(0.0f);
 	CrouchSpeed = 12.f;
+
+	bIsWalking = false;
+	WalkSpeed = 600.f;
+	SlowWalkSpeed = 400.f;
 }
 
 void AIAFinalCharacter::BeginPlay()
@@ -76,6 +80,9 @@ void AIAFinalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		// Crouching
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &AIAFinalCharacter::StartCrouching);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &AIAFinalCharacter::StopCrouching);
+
+		// Walking
+		EnhancedInputComponent->BindAction(WalkAction, ETriggerEvent::Started, this, &AIAFinalCharacter::SlowWalk);
 	}
 	else
 	{
@@ -143,6 +150,21 @@ void AIAFinalCharacter::CalcCamera(float DeltaTime, struct FMinimalViewInfo& Out
 	}
 }
 
+void AIAFinalCharacter::SlowWalk(const FInputActionValue& Value)
+{
+	if(bIsWalking)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	}
+	else
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SlowWalkSpeed;
+	}
+	bIsWalking = !bIsWalking;
+	
+	
+}
+
 void AIAFinalCharacter::StartCrouching(const FInputActionValue& Value)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("StartCrouching"));
@@ -153,4 +175,5 @@ void AIAFinalCharacter::StopCrouching(const FInputActionValue& Value)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("StopCrouching"));
 	UnCrouch();
+
 }
