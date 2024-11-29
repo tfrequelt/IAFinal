@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Sound/SoundBase.h"
 #include "IAFinalCharacter.generated.h"
 
 class UInputComponent;
@@ -36,7 +37,12 @@ class AIAFinalCharacter : public ACharacter
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* DistractAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Sound, meta=(AllowPrivateAccess = "true"))
+	USoundBase* DistractionSound;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation", meta=(AllowPrivateAccess = "true"))
+	UAnimMontage* montage;
 public:
 	AIAFinalCharacter();
 
@@ -55,17 +61,19 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+	void SetupStimulusSource();
 
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
-
+	class UAIPerceptionStimuliSourceComponent* StimulusSource;
+	void on_distract();
 public:
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-
+	
 };
 
