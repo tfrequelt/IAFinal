@@ -52,6 +52,22 @@ class AIAFinalCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	float SlowWalkSpeed;
 	
+	/** Sprint Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* SprintAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	bool bIsSprinting;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	float SprintSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
+	float CurrentEndurance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
+	float MaxEndurance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
+	float MinEndurance;
+	
 public:
 	AIAFinalCharacter();
 
@@ -84,9 +100,14 @@ protected:
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
-
+	
 	/** Called for walking input */
 	void SlowWalk(const FInputActionValue& Value);
+
+	/** Called for sprinting input */
+	void StartSprinting(const FInputActionValue& Value);
+	void StopSprinting(const FInputActionValue& Value);
+	//void Sprint(const FInputActionValue& Value);
 
 protected:
 	// APawn interface

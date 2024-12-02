@@ -9,6 +9,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "VectorUtil.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -43,6 +44,13 @@ AIAFinalCharacter::AIAFinalCharacter()
 	bIsWalking = false;
 	WalkSpeed = 600.f;
 	SlowWalkSpeed = 400.f;
+
+	bIsSprinting = false;
+	SprintSpeed = 1200.f;
+
+	MaxEndurance = 100.f;
+	MinEndurance = 0.f;
+	CurrentEndurance = MaxEndurance;
 }
 
 void AIAFinalCharacter::BeginPlay()
@@ -58,6 +66,11 @@ void AIAFinalCharacter::Tick(float DeltaTime)
 
 	float CrouchInterpTime = FMath::Min(1.f, CrouchSpeed * DeltaTime);
 	CrouchEyeOffset = (1.f - CrouchInterpTime) * CrouchEyeOffset;
+
+	// if(bIsSprinting)
+	// {
+	// 	CurrentEndurance = UE::Shader::Clamp(CurrentEndurance, MaxEndurance, MinEndurance);
+	// }
 }	
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -83,6 +96,10 @@ void AIAFinalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 		// Walking
 		EnhancedInputComponent->BindAction(WalkAction, ETriggerEvent::Started, this, &AIAFinalCharacter::SlowWalk);
+
+		// Sprinting
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AIAFinalCharacter::StartSprinting);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AIAFinalCharacter::StopSprinting);
 	}
 	else
 	{
@@ -161,9 +178,34 @@ void AIAFinalCharacter::SlowWalk(const FInputActionValue& Value)
 		GetCharacterMovement()->MaxWalkSpeed = SlowWalkSpeed;
 	}
 	bIsWalking = !bIsWalking;
-	
-	
 }
+
+void AIAFinalCharacter::StartSprinting(const FInputActionValue& Value)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("StartSprinting"));
+	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	bIsSprinting = true;
+}
+
+void AIAFinalCharacter::StopSprinting(const FInputActionValue& Value)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("StopSprinting"));
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	bIsSprinting = false;
+}
+
+// void AIAFinalCharacter::Sprint(const FInputActionValue& Value)
+// {
+// 	if(bIsSprinting)
+// 	{
+// 		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+// 	}
+// 	else
+// 	{
+// 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+// 	}
+// 	bIsSprinting = !bIsSprinting;
+// }
 
 void AIAFinalCharacter::StartCrouching(const FInputActionValue& Value)
 {
@@ -175,5 +217,4 @@ void AIAFinalCharacter::StopCrouching(const FInputActionValue& Value)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("StopCrouching"));
 	UnCrouch();
-
 }
