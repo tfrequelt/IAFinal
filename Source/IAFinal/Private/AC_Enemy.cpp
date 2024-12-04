@@ -16,6 +16,10 @@ AAC_Enemy::AAC_Enemy()
 
 UBehaviorTree* AAC_Enemy::GetBehaviorTree() const
 {
+	if (!BehaviorTree)
+	{
+		UE_LOG(LogTemp, Error, TEXT("BehaviorTree is null in AAC_Enemy::GetBehaviorTree"));
+	}
 	return BehaviorTree;
 }
 
@@ -38,5 +42,16 @@ void AAC_Enemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void AAC_Enemy::SetupStimulusSource()
+{
+	StimulusSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
+	if(StimulusSource)
+	{
+
+		StimulusSource->RegisterForSense(TSubclassOf<UAISense_Sight>());
+		StimulusSource->RegisterWithPerceptionSystem();
+	}
 }
 

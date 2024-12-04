@@ -123,12 +123,15 @@ void AIAFinalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void AIAFinalCharacter::on_distract()
 {	
+	UE_LOG(LogTemp, Error, TEXT("triggered t."));
 
 	if(DistractionSound)
 	{
+		UE_LOG(LogTemp, Error, TEXT("triggered sound."));
+
 		FVector const loc = GetActorLocation();
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DistractionSound, loc);
-		UAISense_Hearing::ReportNoiseEvent(GetWorld(),loc,1.0f,this,0.0f,tags::noise_tag);
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DistractionSound, loc,0.5f);
+		UAISense_Hearing::ReportNoiseEvent(GetWorld(),loc,1.0f,this,5.f,tags::noise_tag);
 	}
 }
 
@@ -249,6 +252,7 @@ void AIAFinalCharacter::SetupStimulusSource()
 	StimulusSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
 	if(StimulusSource)
 	{
+
 		StimulusSource->RegisterForSense(TSubclassOf<UAISense_Sight>());
 		StimulusSource->RegisterWithPerceptionSystem();
 	}

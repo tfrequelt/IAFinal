@@ -27,20 +27,16 @@ void AAIC_Enemy::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	// Check if InPawn is valid and can be cast to AAC_Enemy
 	if (AAC_Enemy* const enemy = Cast<AAC_Enemy>(InPawn))
 	{
-		// Check if the behavior tree is valid
 		if (UBehaviorTree* const tree = enemy->GetBehaviorTree())
 		{
 			UBlackboardComponent* b = nullptr;
 
-			// Ensure UseBlackboard succeeds
 			if (UseBlackboard(tree->BlackboardAsset, b))
 			{
-				Blackboard = b;  // Assign the BlackboardComponent
-                
-				// Attempt to run the behavior tree
+				Blackboard = b; // Assign the BlackboardComponent
+
 				if (!RunBehaviorTree(tree))
 				{
 					UE_LOG(LogTemp, Error, TEXT("Failed to run Behavior Tree in AAIC_Enemy::OnPossess"));
@@ -62,46 +58,49 @@ void AAIC_Enemy::OnPossess(APawn* InPawn)
 	}
 }
 
+
 void AAIC_Enemy::onUpdated(TArray<AActor*> const& updatedActors)
 {
-	for(size_t x = 0; x<updatedActors.Num(); ++x)
-	{
+	if (!GetPerceptionComponent()) {
+		UE_LOG(LogTemp, Error, TEXT("PerceptionComponent is null in onUpdated"));
+		return;
+	}
+
+	if (!GetBlackboardComponent()) {
+		UE_LOG(LogTemp, Error, TEXT("BlackboardComponent is null in onUpdated"));
+		return;
+	}
+
+	for (size_t x = 0; x < updatedActors.Num(); ++x) {
 		FActorPerceptionBlueprintInfo info;
 		GetPerceptionComponent()->GetActorsPerception(updatedActors[x], info);
-		for(size_t k = 0; k < info.LastSensedStimuli.Num();++k)
-		{
-			FAIStimulus const stim = info.LastSensedStimuli[k];
-			if(stim.Tag == tags::noise_tag)
-			{
-				if(GetBlackboardComponent()->GetValueAsInt(keys::awake_state) > 2)
-				{
-					int awakeState = GetBlackboardComponent()->GetValueAsInt(keys::awake_state);
 
-					UE_LOG(LogTemp, Error, TEXT("awake..%d."), awakeState);
-					// GetBlackboardComponent()->SetValueAsInt(keys::awake_state,awakeState+1);
-					UE_LOG(LogTemp, Error, TEXT("2 heard..%s."),GetBlackboardComponent()->GetValueAsBool(keys::heard_player) ? TEXT("true") : TEXT("false"));	
+		if (info.LastSensedStimuli.Num() == 0) {
+			UE_LOG(LogTemp, Warning, TEXT("No stimuli detected for actor %s"), *updatedActors[x]->GetName());
+			continue;
+		}
 
-					GetBlackboardComponent()->SetValueAsBool(keys::is_awake, true);
-					GetBlackboardComponent()->SetValueAsVector(keys::target_location,stim.StimulusLocation);
+		for (size_t k = 0; k < info.LastSensedStimuli.Num(); ++k) {
+			const FAIStimulus& stim = info.LastSensedStimuli[k];
 
-				}else
-				{
-					
-					GetBlackboardComponent()->SetValueAsBool(keys::heard_player, true);
-					int awakeState = GetBlackboardComponent()->GetValueAsInt(keys::awake_state);
-					UE_LOG(LogTemp, Error, TEXT("Alert..%s."),GetBlackboardComponent()->GetValueAsBool(keys::heard_player) ? TEXT("true") : TEXT("false"));	
-					GetBlackboardComponent()->SetValueAsInt(keys::awake_state,awakeState+1);
+			if (stim.Tag == tags::noise_tag) {
+				auto* BlackboardComponent = GetBlackboardComponent(); 
 
+				int awakeState = BlackboardComponent->GetValueAsInt(keys::awake_state);
+				if (awakeState > 2) {
+					UE_LOG(LogTemp, Error, TEXT("Awake state: %d"), awakeState);
+					BlackboardComponent->SetValueAsBool(keys::is_awake, true);
+					BlackboardComponent->SetValueAsVector(keys::target_location, stim.StimulusLocation);
+				} else {
+					BlackboardComponent->SetValueAsBool(keys::heard_player, true);
+					BlackboardComponent->SetValueAsInt(keys::awake_state, awakeState + 1);
+					UE_LOG(LogTemp, Error, TEXT("Alert state updated to: %d"), awakeState + 1);
 				}
 			}
-			
-			// else
-			// {
-			// 	GetBlackboardComponent()->SetValueAsBool("CanSeePlayer", stim.WasSuccessfullySensed()); 
-			// }
 		}
 	}
 }
+
 
 void AAIC_Enemy::onAlert()
 {
@@ -140,6 +139,7 @@ void AAIC_Enemy::SetupPerceptionSystem() {
 		HearingConfig->DetectionByAffiliation.bDetectEnemies =true;
 		HearingConfig->DetectionByAffiliation.bDetectFriendlies =true;
 		HearingConfig->DetectionByAffiliation.bDetectNeutrals =true;
+		//GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this,&AAIC_Enemy::OnTargetDetected);
 		GetPerceptionComponent()->OnPerceptionUpdated.AddDynamic(this,&AAIC_Enemy::onUpdated);
 		GetPerceptionComponent()->ConfigureSense(*HearingConfig);
 	}
@@ -150,6 +150,7 @@ void AAIC_Enemy::SetupPerceptionSystem() {
 	// }
 }
 	
+//
 
 void AAIC_Enemy::OnTargetDetected(AActor* Actor, FAIStimulus const Stimulus)
 {
@@ -157,11 +158,13 @@ void AAIC_Enemy::OnTargetDetected(AActor* Actor, FAIStimulus const Stimulus)
 	{
 		if(Stimulus.Type == SightConfig->GetSenseID())
 		{
+			UE_LOG(LogTemp, Error, TEXT("SIGHT TRIGGERED"));
+
 			GetBlackboardComponent()->SetValueAsBool(keys::can_see_player,Stimulus.WasSuccessfullySensed());
 		}else if(Stimulus.Type == HearingConfig->GetSenseID())
 		{
 			//GetBlackboardComponent()->SetValueAsBool(keys::heard_player,Stimulus.WasSuccessfullySensed());
-
+			//onUpdated(Actor);
 		}
 	}
 }
