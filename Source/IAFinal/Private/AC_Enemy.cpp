@@ -10,8 +10,8 @@
 AAC_Enemy::AAC_Enemy()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-	SetupStimulusSource();
+	PrimaryActorTick.bCanEverTick = false;
+	
 }
 
 UBehaviorTree* AAC_Enemy::GetBehaviorTree() const
