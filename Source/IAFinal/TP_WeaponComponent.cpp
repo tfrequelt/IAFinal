@@ -2,6 +2,8 @@
 
 
 #include "TP_WeaponComponent.h"
+
+#include "AI_Tags.h"
 #include "IAFinalCharacter.h"
 #include "IAFinalProjectile.h"
 #include "GameFramework/PlayerController.h"
@@ -12,12 +14,16 @@
 #include "Animation/AnimInstance.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Hearing.h"
+#include "Perception/AISense_Sight.h"
 
 // Sets default values for this component's properties
 UTP_WeaponComponent::UTP_WeaponComponent()
 {
 	// Default offset from the character location for projectiles to spawn
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
+	SetupStimulusSource();
 }
 
 
@@ -45,13 +51,16 @@ void UTP_WeaponComponent::Fire()
 	
 			// Spawn the projectile at the muzzle
 			World->SpawnActor<AIAFinalProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			
 		}
 	}
 	
 	// Try and play the sound if specified
 	if (FireSound != nullptr)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, Character->GetActorLocation());
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, Character->GetActorLocation(),0.2f);
+		UAISense_Hearing::ReportNoiseEvent(GetWorld(),Character->GetActorLocation(),1.0f,Character,1000.0f,tags::noise_tag);
+
 	}
 	
 	// Try and play a firing animation if specified
@@ -115,5 +124,15 @@ void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		{
 			Subsystem->RemoveMappingContext(FireMappingContext);
 		}
+	}
+}
+void UTP_WeaponComponent::SetupStimulusSource()
+{
+	StimulusSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
+	if(StimulusSource)
+	{
+
+		StimulusSource->RegisterForSense(TSubclassOf<UAISense_Sight>());
+		StimulusSource->RegisterWithPerceptionSystem();
 	}
 }

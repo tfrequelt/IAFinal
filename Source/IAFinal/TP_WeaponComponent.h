@@ -53,6 +53,8 @@ protected:
 	/** Ends gameplay for this component. */
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	void SetupStimulusSource();
+	class UAIPerceptionStimuliSourceComponent* StimulusSource;
 
 private:
 	/** The Character holding this weapon*/

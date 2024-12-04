@@ -22,6 +22,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void SetupStimulusSource();
+	class UAIPerceptionStimuliSourceComponent* StimulusSource;
 
 protected:
 	// Called when the game starts or when spawned
