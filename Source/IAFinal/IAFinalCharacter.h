@@ -43,17 +43,55 @@ class AIAFinalCharacter : public ACharacter
 	USoundBase* DistractionSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Animation", meta=(AllowPrivateAccess = "true"))
 	UAnimMontage* montage;
+
+	/** Crouch Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* CrouchAction;
+
+	/** Walk Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* WalkAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	bool bIsWalking;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	float WalkSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	float SlowWalkSpeed;
+	
+	/** Sprint Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* SprintAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	bool bIsSprinting;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	float SprintSpeed;
+
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
+	// float CurrentEndurance;
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
+	// float MaxEndurance;
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
+	// float MinEndurance;
+	
 public:
 	AIAFinalCharacter();
 
 protected:
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 public:
 		
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
+	FVector CrouchEyeOffset;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
+	float CrouchSpeed;
 
 protected:
 	/** Called for movement input */
@@ -62,6 +100,22 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 	void SetupStimulusSource();
+
+	/** Called for crouching input */
+	void StartCrouching(const FInputActionValue& Value);
+	void StopCrouching(const FInputActionValue& Value);
+
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
+	
+	/** Called for walking input */
+	void SlowWalk(const FInputActionValue& Value);
+
+	/** Called for sprinting input */
+	void StartSprinting(const FInputActionValue& Value);
+	void StopSprinting(const FInputActionValue& Value);
+	//void Sprint(const FInputActionValue& Value);
 
 protected:
 	// APawn interface
