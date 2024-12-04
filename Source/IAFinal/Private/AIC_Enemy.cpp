@@ -119,8 +119,8 @@ void AAIC_Enemy::SetupPerceptionSystem() {
 	}
  
 	if (SightConfig != nullptr) {
-		SightConfig->SightRadius = 500.F;
-		SightConfig->LoseSightRadius = SightConfig->SightRadius + 25.F;
+		SightConfig->SightRadius = 1000.F;
+		SightConfig->LoseSightRadius = SightConfig->SightRadius + 100.F;
 		SightConfig->PeripheralVisionAngleDegrees = 90.F;
 		SightConfig->SetMaxAge(5.F); // seconds - perceived stimulus forgotten after this time
 		SightConfig->AutoSuccessRangeFromLastSeenLocation = 520.F;
