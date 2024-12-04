@@ -100,9 +100,6 @@ void AIAFinalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		// Sprinting
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AIAFinalCharacter::StartSprinting);
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AIAFinalCharacter::StopSprinting);
-
-		// Firing
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AIAFinalCharacter::Fire);
 	}
 	else
 	{
@@ -220,60 +217,4 @@ void AIAFinalCharacter::StopCrouching(const FInputActionValue& Value)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("StopCrouching"));
 	UnCrouch();
-}
-
-void AIAFinalCharacter::Fire()
-{
-	FVector Start, LineTraceEnd, ForwardVector;
-
-	Start = GetActorLocation();
-
-	ForwardVector = GetActorLocation();
-
-	LineTraceEnd = Start + (ForwardVector * 10000);
-	
-	Raycast(Start,LineTraceEnd);
-}
-
-void AIAFinalCharacter::Raycast(FVector StartTrace, FVector EndTrace)
-{
-	FHitResult* HitResult = new FHitResult();
-	FCollisionQueryParams* CQP = new FCollisionQueryParams();
-	ECollisionChannel Channel = ECC_Visibility; // Or another channel of your choice
-	if(GetWorld()->LineTraceSingleByChannel(*HitResult, StartTrace, EndTrace,Channel, *CQP))
-	{
-		DrawDebugLine(
-		GetWorld(),
-		StartTrace,
-		EndTrace,
-		FColor(255, 0, 0),
-		false, 2, 0,
-		2
-		);
-		AAIShootCharacter* aiChar = Cast<AAIShootCharacter>(HitResult->GetActor());
-		if(aiChar != NULL)
-		{
-			aiChar->OnHit(20,this);
-		}
-		
-		// Spawn Niagara Beam Effect
-		if (LaserBeamEffect)
-		{
-			UNiagaraComponent* Beam = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-				GetWorld(),
-				LaserBeamEffect,
-				StartTrace
-			);
-
-			if (Beam)
-			{
-				// Set the beam's start and end positions
-				Beam->SetVectorParameter(FName("BeamStart"), StartTrace);
-				Beam->SetVectorParameter(FName("BeamEnd"), HitResult->ImpactPoint);
-
-				// Activation du système Niagara
-				Beam->Activate();
-			}
-		}
-	}
 }

@@ -68,18 +68,9 @@ class AIAFinalCharacter : public ACharacter
 	// float MaxEndurance;
 	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
 	// float MinEndurance;
-
-	/** Fire Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputAction* FireAction;
 	
 public:
 	AIAFinalCharacter();
-	
-	void Raycast(FVector StartTrace, FVector EndTrace);
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
-    UNiagaraSystem* LaserBeamEffect;
 
 protected:
 	virtual void BeginPlay() override;
@@ -118,9 +109,6 @@ protected:
 	void StartSprinting(const FInputActionValue& Value);
 	void StopSprinting(const FInputActionValue& Value);
 	//void Sprint(const FInputActionValue& Value);
-
-	/** Called for firing input */
-	void Fire();
 
 protected:
 	// APawn interface
