@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "NiagaraSystem.h"
 #include "IAFinalCharacter.generated.h"
 
 class UInputComponent;
@@ -61,15 +62,24 @@ class AIAFinalCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	float SprintSpeed;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
-	float CurrentEndurance;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
-	float MaxEndurance;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
-	float MinEndurance;
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
+	// float CurrentEndurance;
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
+	// float MaxEndurance;
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Stats, meta=(AllowPrivateAccess = "true"))
+	// float MinEndurance;
+
+	/** Fire Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* FireAction;
 	
 public:
 	AIAFinalCharacter();
+	
+	void Raycast(FVector StartTrace, FVector EndTrace);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+    UNiagaraSystem* LaserBeamEffect;
 
 protected:
 	virtual void BeginPlay() override;
@@ -108,6 +118,9 @@ protected:
 	void StartSprinting(const FInputActionValue& Value);
 	void StopSprinting(const FInputActionValue& Value);
 	//void Sprint(const FInputActionValue& Value);
+
+	/** Called for firing input */
+	void Fire();
 
 protected:
 	// APawn interface
